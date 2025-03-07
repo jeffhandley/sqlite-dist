@@ -118,7 +118,7 @@ impl NugetPackage {
                     Cpu::I686 => "x86",
                     Cpu::Armv7a => "armv7",
                 };
-                let file_path = format!("runtimes/{}-{}/{}", os, cpu, loadable_file.file.name);
+                let file_path = format!("runtimes/{}-{}/native/{}", os, cpu, loadable_file.file.name);
                 self.zip.start_file(&file_path, FileOptions::default())?;
                 self.zip.write_all(&loadable_file.file.data)?;
             }
