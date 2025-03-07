@@ -104,12 +104,21 @@ impl NugetPackage {
                 continue;
             }
             for loadable_file in &platform_dir.loadable_files {
-                let file_path = format!(
-                    "runtimes/{}-{}/{}",
-                    platform_dir.os.to_string().to_lowercase(),
-                    platform_dir.cpu.to_string().to_lowercase(),
-                    loadable_file.file.name
-                );
+                let os = match platform_dir.os {
+                    Os::Windows => "win",
+                    Os::Linux => "linux",
+                    Os::Macos => "osx",
+                    Os::Android => "android",
+                    Os::Ios => "ios",
+                    Os::IosSimulator => "ios-simulator",
+                };
+                let cpu = match platform_dir.cpu {
+                    Cpu::Aarch64 => "arm64",
+                    Cpu::X86_64 => "x64",
+                    Cpu::I686 => "x86",
+                    Cpu::Armv7a => "armv7",
+                };
+                let file_path = format!("runtimes/{}-{}/{}", os, cpu, loadable_file.file.name);
                 self.zip.start_file(&file_path, FileOptions::default())?;
                 self.zip.write_all(&loadable_file.file.data)?;
             }
