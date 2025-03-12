@@ -68,12 +68,21 @@ pub struct NugetPackage {
 }
 
 impl NugetPackage {
-    pub fn new() -> io::Result<Self> {
+    pub fn new(package_id: &str) -> io::Result<Self> {
         let buffer = Vec::new();
         let cursor = Cursor::new(buffer);
         let mut zip = ZipWriter::new(cursor);
         zip.start_file("[Content_Types].xml", FileOptions::default())?;
         zip.write_all(Self::content_types().as_bytes())?;
+        // add props_file to the folder buildTransitive\net46
+        let props_file_name = format!("buildTransitive/net46/{}.props", package_id);
+        zip.start_file(&props_file_name, FileOptions::default())?;
+        zip.write_all(Self::props_file().as_bytes())?;
+
+        // add targets_file to the folder buildTransitive\net46
+        let targets_file_name = format!("buildTransitive/net46/{}.targets", package_id);
+        zip.start_file(&targets_file_name, FileOptions::default())?;
+        zip.write_all(Self::targets_file(package_id).as_bytes())?;
         Ok(Self { zip })
     }
 
@@ -85,6 +94,70 @@ impl NugetPackage {
   <Default Extension="nuspec" ContentType="application/octet-stream"/>
   <Default Extension="psmdcp" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
 </Types>"#.to_string()
+    }
+
+    fn props_file() -> String {
+        r#"<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+  NuGet packages.config doesn't support native assemblies automatically,
+  so copy the native assemblies to the output directory.
+  -->
+  <ItemGroup Condition="Exists('packages.config') OR
+                        Exists('$(MSBuildProjectName).packages.config') OR
+                        Exists('packages.$(MSBuildProjectName).config')">
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\runtimes\win-x64\native\*.dll"
+             Condition="'$(PlatformTarget)' == 'x64'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+      <Link>%(Filename)%(Extension)</Link>
+    </Content>
+
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\runtimes\win-x86\native\*.dll"
+             Condition="'$(PlatformTarget)' == 'x86'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+      <Link>%(Filename)%(Extension)</Link>
+    </Content>
+
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\runtimes\win-arm64\native\*.dll"
+             Condition="'$(PlatformTarget)' == 'arm64'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+      <Link>%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+
+</Project>"#
+            .to_string()
+    }
+
+    fn targets_file(package_id: &str) -> String {
+        format!(
+            r#"<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <EnableMLUnsupportedPlatformTargetCheck Condition="'$(EnableMLUnsupportedPlatformTargetCheck)' == ''">true</EnableMLUnsupportedPlatformTargetCheck>
+  </PropertyGroup>
+
+  <Target Name="_CheckForUnsupportedPlatformTarget"
+          Condition="'$(EnableMLUnsupportedPlatformTargetCheck)' == 'true'"
+          AfterTargets="_CheckForInvalidConfigurationAndPlatform">
+
+    <!--
+    Special case .NET Core portable applications.  When building a portable .NET Core app,
+    the PlatformTarget is empty, and you don't know until runtime (i.e. which dotnet.exe)
+    what processor architecture will be used.
+    -->
+    <Error Condition="('$(PlatformTarget)' != 'x64' AND '$(PlatformTarget)' != 'x86') AND
+                      ('$(OutputType)' == 'Exe' OR '$(OutputType)'=='WinExe') AND
+                      !('$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(PlatformTarget)' == '')"
+           Text="{} currently supports 'x64' and 'x86' processor architectures. Please ensure your application is targeting 'x64' or 'x86'." />
+  </Target>
+  
+</Project>"#,
+            package_id
+        )
     }
 
     pub fn add_nuspec(&mut self, nuspec: &Nuspec) -> io::Result<()> {
@@ -118,7 +191,8 @@ impl NugetPackage {
                     Cpu::I686 => "x86",
                     Cpu::Armv7a => "armv7",
                 };
-                let file_path = format!("runtimes/{}-{}/native/{}", os, cpu, loadable_file.file.name);
+                let file_path =
+                    format!("runtimes/{}-{}/native/{}", os, cpu, loadable_file.file.name);
                 self.zip.start_file(&file_path, FileOptions::default())?;
                 self.zip.write_all(&loadable_file.file.data)?;
             }
@@ -138,7 +212,7 @@ pub(crate) fn write_nuget_packages(
 ) -> io::Result<Vec<GeneratedAsset>> {
     let mut assets = vec![];
     let nuspec = Nuspec::new(project);
-    let mut package = NugetPackage::new()?;
+    let mut package = NugetPackage::new(&nuspec.metadata.id)?;
     package.add_nuspec(&nuspec)?;
     package.add_files(project)?;
     let buffer = package.finish()?;
