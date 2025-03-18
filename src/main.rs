@@ -8,6 +8,7 @@ mod pip;
 mod spec;
 mod spm;
 mod sqlpkg;
+mod publish;
 
 use clap::{builder::OsStr, value_parser, Arg, ArgMatches, Command};
 use flate2::write::GzEncoder;
@@ -25,6 +26,7 @@ use std::{
     path::PathBuf,
 };
 use tar::Header;
+use crate::publish::publish;
 
 struct Project {
     version: Version,
@@ -226,6 +228,8 @@ fn create_targz(files: &[&PlatformFile]) -> io::Result<Vec<u8>> {
             let mut header = Header::new_gnu();
             header.set_path(file.name.clone())?;
             header.set_size(file.data.len() as u64);
+            // TODO: workaround for determinstic builds?
+            header.set_mtime(0); 
             if let Some(metadata) = &file.metadata {
                 header.set_metadata(metadata);
             } else {
@@ -382,10 +386,13 @@ impl PlatformDirectory {
 pub enum BuildError {
     #[error("`{0}` is a required argument")]
     RequiredArg(String),
+
     #[error("`{0}` is a required argument")]
     InvalidSpec(toml::de::Error),
+
     #[error("specfile error: `{0}`")]
     SpecError(String),
+
     #[error("I/O error: {0}")]
     IoError(#[from] io::Error),
 
@@ -394,29 +401,45 @@ pub enum BuildError {
 
     #[error("Error building a pip package: {0}")]
     PipBuildEror(#[from] PipBuildError),
+
     #[error("Error building an npm package: {0}")]
     NpmBuildEror(#[from] NpmBuildError),
 }
 
-fn build(matches: ArgMatches) -> Result<(), BuildError> {
-    // Get the values of arguments
-    let input_dir = matches
+struct BuildArgs {
+    input_directory: PathBuf,
+    output_directory: PathBuf,
+    config_path: PathBuf,
+    version: Version,
+}
+
+fn build_args(matches: ArgMatches) -> Result<BuildArgs, BuildError> {
+    let input_directory = matches
         .get_one::<PathBuf>("input")
         .ok_or_else(|| BuildError::RequiredArg("input".to_owned()))?;
-    let output_dir = matches
+    let output_directory = matches
         .get_one::<PathBuf>("output")
         .ok_or_else(|| BuildError::RequiredArg("output".to_owned()))?;
-    let input_file = matches
+    let config_path = matches
         .get_one::<PathBuf>("file")
         .ok_or_else(|| BuildError::RequiredArg("file".to_owned()))?;
     let version = matches
         .get_one::<String>("version")
         .ok_or_else(|| BuildError::RequiredArg("version".to_owned()))?;
     let version = Version::parse(version).unwrap();
+    Ok(BuildArgs {
+        input_directory: input_directory.to_owned(),
+        output_directory: output_directory.to_owned(),
+        config_path: config_path.to_owned(),
+        version,
+    })
+}
+fn build(args: BuildArgs) -> Result<(), BuildError> {
+    // Get the values of arguments
 
-    std::fs::create_dir_all(output_dir)?;
+    std::fs::create_dir_all(args.output_directory.clone())?;
 
-    let spec: Spec = match toml::from_str(fs::read_to_string(input_file)?.as_str()) {
+    let spec: Spec = match toml::from_str(fs::read_to_string(args.config_path.clone())?.as_str()) {
         Ok(spec) => spec,
         Err(err) => {
             eprintln!("{}", err);
@@ -445,7 +468,7 @@ fn build(matches: ArgMatches) -> Result<(), BuildError> {
         ));
     }
 
-    let mut entries = fs::read_dir(input_dir)?
+    let mut entries = fs::read_dir(args.input_directory)?
         .map(|entry| {
             Ok(entry
                 .map_err(|_| {
@@ -475,32 +498,38 @@ fn build(matches: ArgMatches) -> Result<(), BuildError> {
     let platform_directories = platform_directories?;
 
     let project = Project {
-        version,
+        version: args.version,
         spec,
-        spec_directory: input_file.parent().unwrap().to_path_buf(),
+        spec_directory: args
+            .config_path
+            .clone()
+            .parent()
+            .unwrap()
+            .to_path_buf()
+            .clone(),
         platform_directories,
     };
 
     let mut generated_assets: Vec<GeneratedAsset> = vec![];
     if project.spec.targets.github_releases.is_some() {
-        let path = output_dir.join("github_releases");
+        let path = args.output_directory.join("github_releases");
         std::fs::create_dir(&path)?;
         let gh_release_assets = gh_releases::write_platform_files(&project, &path)?;
 
         if project.spec.targets.sqlpkg.is_some() {
-            let sqlpkg_dir = output_dir.join("sqlpkg");
+            let sqlpkg_dir = args.output_directory.join("sqlpkg");
             std::fs::create_dir(&sqlpkg_dir)?;
             generated_assets.extend(sqlpkg::write_sqlpkg(&project, &sqlpkg_dir)?);
         };
 
         if project.spec.targets.spm.is_some() {
-            let path = output_dir.join("spm");
+            let path = args.output_directory.join("spm");
             std::fs::create_dir(&path)?;
             generated_assets.extend(spm::write_spm(&project.spec, &gh_release_assets, &path)?);
         };
 
         if let Some(amalgamation_config) = &project.spec.targets.amalgamation {
-            let amalgamation_path = output_dir.join("amalgamation");
+            let amalgamation_path = args.output_directory.join("amalgamation");
             std::fs::create_dir(&amalgamation_path)?;
             generated_assets.extend(amalgamation::write_amalgamation(
                 &project,
@@ -513,22 +542,22 @@ fn build(matches: ArgMatches) -> Result<(), BuildError> {
     };
 
     if project.spec.targets.pip.is_some() {
-        let pip_path = output_dir.join("pip");
+        let pip_path = args.output_directory.join("pip");
         std::fs::create_dir(&pip_path)?;
         generated_assets.extend(pip::write_base_packages(&project, &pip_path)?);
         if project.spec.targets.datasette.is_some() {
-            let datasette_path = output_dir.join("datasette");
+            let datasette_path = args.output_directory.join("datasette");
             std::fs::create_dir(&datasette_path)?;
             generated_assets.push(pip::write_datasette(&project, &datasette_path)?);
         }
         if project.spec.targets.sqlite_utils.is_some() {
-            let sqlite_utils_path = output_dir.join("sqlite_utils");
+            let sqlite_utils_path = args.output_directory.join("sqlite_utils");
             std::fs::create_dir(&sqlite_utils_path)?;
             generated_assets.push(pip::write_sqlite_utils(&project, &sqlite_utils_path)?);
         }
     };
     if project.spec.targets.npm.is_some() {
-        let npm_output_directory = output_dir.join("npm");
+        let npm_output_directory = args.output_directory.join("npm");
         std::fs::create_dir(&npm_output_directory)?;
         generated_assets.extend(npm::write_npm_packages(
             &project,
@@ -537,7 +566,7 @@ fn build(matches: ArgMatches) -> Result<(), BuildError> {
         )?);
     };
     if let Some(gem_config) = &project.spec.targets.gem {
-        let gem_path = output_dir.join("gem");
+        let gem_path = args.output_directory.join("gem");
         std::fs::create_dir(&gem_path)?;
         generated_assets.extend(gem::write_gems(&project, &gem_path, gem_config)?);
     };
@@ -556,12 +585,14 @@ fn build(matches: ArgMatches) -> Result<(), BuildError> {
         .map(|ga| format!("{} {}", ga.name, ga.checksum_sha256))
         .collect::<Vec<String>>()
         .join("\n");
-    File::create(output_dir.join("checksums.txt"))?
+    File::create(args.output_directory.join("checksums.txt"))?
         .write_all(github_releases_checksums_txt.as_bytes())?;
-    File::create(output_dir.join("install.sh"))?.write_all(
+    File::create(args.output_directory.join("install.sh"))?.write_all(
         crate::installer_sh::templates::install_sh(&project, &generated_assets).as_bytes(),
     )?;
-    write_manifest(output_dir, &generated_assets)?;
+    write_manifest(&args.output_directory, &generated_assets)?;
+
+    publish(&generated_assets).unwrap();
     Ok(())
 }
 
@@ -602,11 +633,125 @@ fn main() {
         .disable_version_flag(true)
         .get_matches();
 
-    match build(matches) {
+    match build(build_args(matches).unwrap()) {
         Ok(_) => std::process::exit(0),
         Err(error) => {
             eprintln!("Build error: {error}");
             std::process::exit(1);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use flate2::read::GzDecoder;
+    use std::{fs, io, path::Path};
+    use tar::Archive;
+    use tempdir::TempDir;
+
+    use crate::*;
+
+    fn walk_directory(root: &Path) -> Result<Vec<String>, io::Error> {
+        let mut files = Vec::new();
+
+        for entry in fs::read_dir(root)? {
+            let entry = entry?;
+            let path = entry.path();
+
+            if path.is_file() {
+                let filename = path.file_name().unwrap().to_string_lossy().into_owned();
+                files.push(format!("{filename} {}", entry.metadata().unwrap().len()));
+            } else if path.is_dir() {
+                files.extend(walk_directory(&path)?);
+            }
+        }
+
+        files.sort();
+        Ok(files)
+    }
+
+    fn walk_directory2(root: &Path) -> Result<Vec<String>, io::Error> {
+        let mut files = Vec::new();
+
+        walk_directory_recursive(root, root, &mut files)?;
+
+        files.sort();
+
+        Ok(files)
+    }
+
+    fn walk_directory_recursive(
+        root: &Path,
+        current: &Path,
+        files: &mut Vec<String>,
+    ) -> Result<(), io::Error> {
+        /*if root == current {
+            return Ok(());
+        }*/
+
+        let rel_path = current.strip_prefix(root).unwrap();
+
+        if let Some(size) = fs::metadata(current).map(|meta| meta.len()).ok() {
+            files.push(format!("{}", rel_path.display()));
+        }
+
+        for entry in fs::read_dir(current)? {
+            let entry = entry?;
+            let path = entry.path();
+
+            if path.is_file() {
+                if let Some(size) = fs::metadata(&path).map(|meta| meta.len()).ok() {
+                    // TODO file size but NPM packages are non-deterministic?
+                    files.push(format!(
+                        "{}",
+                        path.strip_prefix(root).unwrap().display()
+                    ));
+                }
+            } else if path.is_dir() {
+                walk_directory_recursive(root, &path, files)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn foo() {
+        let tmpdir = TempDir::new("sqlite-dist-test").unwrap();
+        build(BuildArgs {
+            input_directory: "sample/dist".into(),
+            output_directory: tmpdir.path().join("out").into(),
+            config_path: "sample/sqlite-dist.toml".into(),
+            version: Version::new(0, 0, 1),
+        })
+        .unwrap();
+        eprintln!("asdf {:?}", tmpdir);
+        let mut ls: Vec<String> = fs::read_dir(tmpdir.path().join("out"))
+            .unwrap()
+            .map(|p| {
+                let entry = p.unwrap();
+                let file_type = entry.file_type().unwrap();
+                let metadata = entry.metadata().unwrap();
+                let filename = entry.file_name().to_string_lossy().to_string();
+
+                format!("{} {}", filename, metadata.len())
+            })
+            .collect();
+        ls.sort();
+        insta::assert_yaml_snapshot!(walk_directory2(&tmpdir.path().join("out")).unwrap());
+        Archive::new(GzDecoder::new(
+            File::open(tmpdir
+                .path()
+                .join("out")
+                .join("npm")
+                .join("sqlite-sample.tar.gz")).unwrap(),
+        ));
+        /*
+        let x = fs::read_to_string(tmpdir.path().join("out").join("sqlite-dist-manifest.json"))
+            .unwrap();
+        let x = x.replace(tmpdir.path().to_str().unwrap(), "REDACTED");
+        insta::assert_snapshot!(x);
+         */
+
     }
 }

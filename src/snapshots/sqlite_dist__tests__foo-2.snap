@@ -1,0 +1,236 @@
+---
+source: src/main.rs
+expression: x
+snapshot_kind: text
+---
+{
+  "build_info": {
+    "sqlite_dist_version": "TODO"
+  },
+  "artifacts": [
+    {
+      "kind": "sqlpkg",
+      "name": "sqlpkg.json",
+      "path": "REDACTED/out/sqlpkg/sqlpkg.json",
+      "checksum_sha256": "6513976d537104a6bb12c8bcdf1741b26d48e44a2c6579f420b4067a55e1157a",
+      "size": 439
+    },
+    {
+      "kind": "spm",
+      "name": "spm.json",
+      "path": "REDACTED/out/spm/spm.json",
+      "checksum_sha256": "149c84c16e937222c4d54ee5fa6d3f43845ce91c4228b55ae04a648be1489a39",
+      "size": 2909
+    },
+    {
+      "kind": "amalgamation",
+      "name": "sqlite-sample-0.0.1-amalgamation.tar.gz",
+      "path": "REDACTED/out/amalgamation/sqlite-sample-0.0.1-amalgamation.tar.gz",
+      "checksum_sha256": "58403f240ed23268150e3426d655d97b2290ab70ca04b4176e72b81aa7502ef1",
+      "size": 643
+    },
+    {
+      "kind": "amalgamation",
+      "name": "sqlite-sample-0.0.1-amalgamation.zip",
+      "path": "REDACTED/out/amalgamation/sqlite-sample-0.0.1-amalgamation.zip",
+      "checksum_sha256": "d82cb3985c2b34fcb2e95dc4746ccf775d733d96ebc5611e055212a1f1d9cdd3",
+      "size": 853
+    },
+    {
+      "kind": "github-release-loadable",
+      "name": "sqlite-sample-0.0.1-loadable-macos-aarch64.tar.gz",
+      "path": "REDACTED/out/github_releases/sqlite-sample-0.0.1-loadable-macos-aarch64.tar.gz",
+      "checksum_sha256": "e5ec38dfe7d56881e11067f046e8520a9f73902683eae2cd1ab437ebd24a980f",
+      "size": 102
+    },
+    {
+      "kind": "github-release-loadable",
+      "name": "sqlite-sample-0.0.1-loadable-linux-x86_64.tar.gz",
+      "path": "REDACTED/out/github_releases/sqlite-sample-0.0.1-loadable-linux-x86_64.tar.gz",
+      "checksum_sha256": "628c0ea158ef91faf13b95f47fc88da440dc5bdae3f2cf1a3332a766bb946e0c",
+      "size": 9685
+    },
+    {
+      "kind": "github-release-loadable",
+      "name": "sqlite-sample-0.0.1-loadable-linux-aarch64.tar.gz",
+      "path": "REDACTED/out/github_releases/sqlite-sample-0.0.1-loadable-linux-aarch64.tar.gz",
+      "checksum_sha256": "e369b1f52f5d1cb0218f7625c538c916cb264b905f02cde1b5a31ff601662ad3",
+      "size": 9944
+    },
+    {
+      "kind": "github-release-loadable",
+      "name": "sqlite-sample-0.0.1-loadable-macos-x86_64.tar.gz",
+      "path": "REDACTED/out/github_releases/sqlite-sample-0.0.1-loadable-macos-x86_64.tar.gz",
+      "checksum_sha256": "e5ec38dfe7d56881e11067f046e8520a9f73902683eae2cd1ab437ebd24a980f",
+      "size": 102
+    },
+    {
+      "kind": "github-release-loadable",
+      "name": "sqlite-sample-0.0.1-loadable-windows-x86_64.tar.gz",
+      "path": "REDACTED/out/github_releases/sqlite-sample-0.0.1-loadable-windows-x86_64.tar.gz",
+      "checksum_sha256": "1f5898c38e4139aaed0c22f2eb5cd6ae933726b9d97372772a7ab847621cf415",
+      "size": 66257
+    },
+    {
+      "kind": "github-release-static",
+      "name": "sqlite-sample-0.0.1-static-macos-aarch64.tar.gz",
+      "path": "REDACTED/out/github_releases/sqlite-sample-0.0.1-static-macos-aarch64.tar.gz",
+      "checksum_sha256": "b4d1af78ca1af58b3f527a1a8bb94a65c701ac858d4404efb441d1d9305ba8b9",
+      "size": 10184
+    },
+    {
+      "kind": "github-release-static",
+      "name": "sqlite-sample-0.0.1-static-linux-x86_64.tar.gz",
+      "path": "REDACTED/out/github_releases/sqlite-sample-0.0.1-static-linux-x86_64.tar.gz",
+      "checksum_sha256": "feb642fa55413fe6dd58bb2811c545d4ca673382bf14976af00f66c349c14b50",
+      "size": 10785
+    },
+    {
+      "kind": "github-release-static",
+      "name": "sqlite-sample-0.0.1-static-linux-aarch64.tar.gz",
+      "path": "REDACTED/out/github_releases/sqlite-sample-0.0.1-static-linux-aarch64.tar.gz",
+      "checksum_sha256": "c820a92c234fafe45d4e9621360ac1dd18efee3fdc0db3fd78d639773f61632c",
+      "size": 10946
+    },
+    {
+      "kind": "github-release-static",
+      "name": "sqlite-sample-0.0.1-static-macos-x86_64.tar.gz",
+      "path": "REDACTED/out/github_releases/sqlite-sample-0.0.1-static-macos-x86_64.tar.gz",
+      "checksum_sha256": "e2754e03a6c97443aa7d32a960476df2d1672c99646b4a06133e29fe30b49f1c",
+      "size": 10023
+    },
+    {
+      "kind": "github-release-static",
+      "name": "sqlite-sample-0.0.1-static-windows-x86_64.tar.gz",
+      "path": "REDACTED/out/github_releases/sqlite-sample-0.0.1-static-windows-x86_64.tar.gz",
+      "checksum_sha256": "5b58f65b653e0b1bb7d05508fd9e6d0170a5a05df4a039eb5963daa2d0676ad5",
+      "size": 10529
+    },
+    {
+      "kind": "pip",
+      "name": "sqlite_sample-0.0.1-py3-none-macosx_11_0_arm64.whl",
+      "path": "REDACTED/out/pip/sqlite_sample-0.0.1-py3-none-macosx_11_0_arm64.whl",
+      "checksum_sha256": "08192b7abb35eb5d293a84f39518de63dabcbfc067eaeb6b37ef8a8071443cf2",
+      "size": 2232
+    },
+    {
+      "kind": "pip",
+      "name": "sqlite_sample-0.0.1-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux1_x86_64.whl",
+      "path": "REDACTED/out/pip/sqlite_sample-0.0.1-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux1_x86_64.whl",
+      "checksum_sha256": "4401e6d6deb1375a1092def7d8ae1cd28401305aebca8f3a44e7caad513b8ecd",
+      "size": 24542
+    },
+    {
+      "kind": "pip",
+      "name": "sqlite_sample-0.0.1-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+      "path": "REDACTED/out/pip/sqlite_sample-0.0.1-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+      "checksum_sha256": "e4ef7b001b54bb6e2bdc439a4f2676ef11a3e9732da11ae6f113da16437819bb",
+      "size": 25390
+    },
+    {
+      "kind": "pip",
+      "name": "sqlite_sample-0.0.1-py3-none-macosx_10_6_x86_64.whl",
+      "path": "REDACTED/out/pip/sqlite_sample-0.0.1-py3-none-macosx_10_6_x86_64.whl",
+      "checksum_sha256": "58f2daaa8ab91d79ca7cdb98b186e6e33d2e20dc1380c7b504b23de302f654cd",
+      "size": 2233
+    },
+    {
+      "kind": "pip",
+      "name": "sqlite_sample-0.0.1-py3-none-win_amd64.whl",
+      "path": "REDACTED/out/pip/sqlite_sample-0.0.1-py3-none-win_amd64.whl",
+      "checksum_sha256": "b30f6429eada146ab855eca6d0f0eef0b15edcc0c579ccc06d748049e6d89ab0",
+      "size": 147119
+    },
+    {
+      "kind": "datasette",
+      "name": "datasette_sqlite_sample-0.0.1-py3-none-any.whl",
+      "path": "REDACTED/out/datasette/datasette_sqlite_sample-0.0.1-py3-none-any.whl",
+      "checksum_sha256": "73c99036e82231ef173e51c957245532784074d5b594be57dba22fbe343cf5b7",
+      "size": 2320
+    },
+    {
+      "kind": "sqlite-utils",
+      "name": "sqlite_utils_sqlite_sample-0.0.1-py3-none-any.whl",
+      "path": "REDACTED/out/sqlite_utils/sqlite_utils_sqlite_sample-0.0.1-py3-none-any.whl",
+      "checksum_sha256": "30c96c523d5e92f071c56b0d77588819ef8d5e4dc29a7d3adcb1d9a3d933246f",
+      "size": 2392
+    },
+    {
+      "kind": "npm",
+      "name": "sqlite-sample-darwin-arm64.tar.gz",
+      "path": "REDACTED/out/npm/sqlite-sample-darwin-arm64.tar.gz",
+      "checksum_sha256": "7719c34b10e088326971396e6d1371d70f700a7d9fe045c146f5678a13d1273e",
+      "size": 442
+    },
+    {
+      "kind": "npm",
+      "name": "sqlite-sample-linux-x64.tar.gz",
+      "path": "REDACTED/out/npm/sqlite-sample-linux-x64.tar.gz",
+      "checksum_sha256": "7848c8527b4f68187ed3ada4f6d52e6d4a3a7235965e9b328c92bd08d8d892b6",
+      "size": 10032
+    },
+    {
+      "kind": "npm",
+      "name": "sqlite-sample-linux-arm64.tar.gz",
+      "path": "REDACTED/out/npm/sqlite-sample-linux-arm64.tar.gz",
+      "checksum_sha256": "eaec520ca46aa04889ab247834a3b7c77de8faa14fd488b47b7de70b90e2412a",
+      "size": 10288
+    },
+    {
+      "kind": "npm",
+      "name": "sqlite-sample-darwin-x64.tar.gz",
+      "path": "REDACTED/out/npm/sqlite-sample-darwin-x64.tar.gz",
+      "checksum_sha256": "71cd3e413f7fdb569119caade34fd00eaf5b91daa58cba749a846715c82693c1",
+      "size": 440
+    },
+    {
+      "kind": "npm",
+      "name": "sqlite-sample-windows-x64.tar.gz",
+      "path": "REDACTED/out/npm/sqlite-sample-windows-x64.tar.gz",
+      "checksum_sha256": "9acf35d44bc200479977c9f69a178436399b6d1f840920b167d1a573e0248108",
+      "size": 66698
+    },
+    {
+      "kind": "npm",
+      "name": "sqlite-sample.tar.gz",
+      "path": "REDACTED/out/npm/sqlite-sample.tar.gz",
+      "checksum_sha256": "889cf86db1f70e25c865a36245489994c4962dc42793865ab4c5cbc2a507a41e",
+      "size": 1375
+    },
+    {
+      "kind": "gem",
+      "name": "sqlite-sample-0.0.1-arm64-darwin.gem",
+      "path": "REDACTED/out/gem/sqlite-sample-0.0.1-arm64-darwin.gem",
+      "checksum_sha256": "b93ed991a20b4c872f910feb2807ea4abef1fdfd4fafaf8138dc37c05dbaa1db",
+      "size": 4096
+    },
+    {
+      "kind": "gem",
+      "name": "sqlite-sample-0.0.1-x86_64-linux.gem",
+      "path": "REDACTED/out/gem/sqlite-sample-0.0.1-x86_64-linux.gem",
+      "checksum_sha256": "b1bee7f04dafd7b24e79ac2c8d90654f41f316d406f2206bb90e1173783ba422",
+      "size": 13824
+    },
+    {
+      "kind": "gem",
+      "name": "sqlite-sample-0.0.1-arm64-linux.gem",
+      "path": "REDACTED/out/gem/sqlite-sample-0.0.1-arm64-linux.gem",
+      "checksum_sha256": "eab454cd4807cc305f725654b5d3ed3d42944b5317247e34be409116c5105bcb",
+      "size": 13824
+    },
+    {
+      "kind": "gem",
+      "name": "sqlite-sample-0.0.1-x86_64-darwin.gem",
+      "path": "REDACTED/out/gem/sqlite-sample-0.0.1-x86_64-darwin.gem",
+      "checksum_sha256": "fbd196b6e52ba12542ac3122bc26124bdc8ba2ec84d2ea0ebc2eefa539c55b67",
+      "size": 4096
+    },
+    {
+      "kind": "gem",
+      "name": "sqlite-sample-0.0.1-x86_64-mingw32.gem",
+      "path": "REDACTED/out/gem/sqlite-sample-0.0.1-x86_64-mingw32.gem",
+      "checksum_sha256": "3cedfd3bf7ad307e054174340d6ab49b87544273306e678a9553d61437f5eeff",
+      "size": 70144
+    }
+  ]
+}

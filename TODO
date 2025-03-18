@@ -1,0 +1,12 @@
+- [ ] Make `--input`, `--version` optional, change `--output` to default `.sqlite-dist/`
+- [ ] Subcommands, default "build"
+- [ ] new `publish` subcommand
+  - [ ] Github Release
+  - [ ] Ruby gems
+  - [ ] Pip
+  - [ ] NPM
+- [ ] install.sh cleanup?
+- [ ] fix sqlpkg
+- [ ] fix spm
+- [ ] `sqlite-dist-publish` github action?
+

@@ -179,6 +179,8 @@ impl Gem {
         header.set_path(path)?;
         header.set_size(data.len() as u64);
         header.set_mode(0o777);
+        // TODO: workaround for determinstic builds?
+        header.set_mtime(0);
         header.set_cksum();
         self.library_tarball.append::<&[u8]>(&header, data)?;
         self.library_filenames.push(path.to_string());
