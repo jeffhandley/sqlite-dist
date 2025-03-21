@@ -20,6 +20,7 @@ pub struct Metadata {
     pub owners: String,
     pub require_license_acceptance: bool,
     pub description: String,
+    pub files: Option<Vec<String>>,
 }
 
 impl Nuspec {
@@ -34,11 +35,22 @@ impl Nuspec {
                 owners: author.clone(),
                 require_license_acceptance: false,
                 description: project.spec.package.description.clone(),
+                files: None,
             },
         }
     }
 
     fn to_xml(&self) -> String {
+        let files_xml = if let Some(files) = &self.metadata.files {
+            files
+                .iter()
+                .map(|file| format!("<file src=\"{}\" target=\"{}\" />", file, file))
+                .collect::<Vec<_>>()
+                .join("\n")
+        } else {
+            String::new()
+        };
+
         format!(
             r#"<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
@@ -51,6 +63,9 @@ impl Nuspec {
     <requireLicenseAcceptance>{}</requireLicenseAcceptance>
     <description>{}</description>
   </metadata>
+  <files>
+    {}
+  </files>
 </package>"#,
             self.metadata.id,
             self.metadata.version,
@@ -58,7 +73,8 @@ impl Nuspec {
             self.metadata.authors,
             self.metadata.owners,
             self.metadata.require_license_acceptance,
-            self.metadata.description
+            self.metadata.description,
+            files_xml
         )
     }
 }
@@ -200,6 +216,44 @@ impl NugetPackage {
         Ok(())
     }
 
+    pub fn add_cs_file(&mut self, project: &Project) -> io::Result<()> {
+        let package_name = project.spec.targets.nuget.as_ref().map_or_else(
+            || project.spec.package.name.replace('-', "_"),
+            |nuget| nuget.friendly_name.clone(),
+        );
+        let cs_file_content = format!(
+            r#"namespace Microsoft.Data.Sqlite
+{{
+    public static class Sqlite{0}Extensions
+    {{
+        public static void Load{0}(this SqliteConnection connection)
+          => connection.LoadExtension("{1}");
+    }}
+}}"#,
+            package_name,
+            project.platform_directories[0].loadable_files[0]
+                .file
+                .name
+                .replace(".dll", "")
+                .replace(".so", "")
+                .replace(".dylib", "")
+        );
+        let cs_file_path = format!(
+            "contentFiles/cs/netstandard2.0/{}/{}.cs",
+            package_name, package_name
+        );
+        self.zip.start_file(&cs_file_path, FileOptions::default())?;
+        self.zip.write_all(cs_file_content.as_bytes())?;
+        Ok(())
+    }
+
+    fn update_nuspec_with_files(&self, nuspec: &mut Nuspec) {
+        nuspec.metadata.files = Some(vec![format!(
+            "<file src=\"*.cs\" target=\"contentFiles/cs/netstandard2.0/{}\"/>",
+            nuspec.metadata.id
+        )]);
+    }
+
     pub fn finish(mut self) -> io::Result<Vec<u8>> {
         let result = self.zip.finish()?;
         Ok(result.into_inner())
@@ -211,10 +265,12 @@ pub(crate) fn write_nuget_packages(
     nuget_output_directory: &Path,
 ) -> io::Result<Vec<GeneratedAsset>> {
     let mut assets = vec![];
-    let nuspec = Nuspec::new(project);
+    let mut nuspec = Nuspec::new(project);
     let mut package = NugetPackage::new(&nuspec.metadata.id)?;
     package.add_nuspec(&nuspec)?;
     package.add_files(project)?;
+    package.add_cs_file(project)?;
+    package.update_nuspec_with_files(&mut nuspec);
     let buffer = package.finish()?;
     let output_path = nuget_output_directory.join(format!(
         "{}.{}.nupkg",

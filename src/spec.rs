@@ -52,7 +52,9 @@ pub struct TargetAmalgamation {
 }
 
 #[derive(Deserialize)]
-pub struct TargetNuget {}
+pub struct TargetNuget {
+    pub friendly_name: String,
+}
 
 #[derive(Deserialize)]
 pub struct Targets {
