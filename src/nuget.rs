@@ -91,12 +91,12 @@ impl NugetPackage {
         zip.start_file("[Content_Types].xml", FileOptions::default())?;
         zip.write_all(Self::content_types().as_bytes())?;
         // add props_file to the folder buildTransitive\net46
-        let props_file_name = format!("buildTransitive/net46/{}.props", package_id);
+        let props_file_name = format!("build/netstandard2.0/{}.props", package_id);
         zip.start_file(&props_file_name, FileOptions::default())?;
         zip.write_all(Self::props_file().as_bytes())?;
 
         // add targets_file to the folder buildTransitive\net46
-        let targets_file_name = format!("buildTransitive/net46/{}.targets", package_id);
+        let targets_file_name = format!("build/netstandard2.0/{}.targets", package_id);
         zip.start_file(&targets_file_name, FileOptions::default())?;
         zip.write_all(Self::targets_file(package_id).as_bytes())?;
         Ok(Self { zip })
@@ -153,11 +153,11 @@ impl NugetPackage {
             r#"<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <EnableMLUnsupportedPlatformTargetCheck Condition="'$(EnableMLUnsupportedPlatformTargetCheck)' == ''">true</EnableMLUnsupportedPlatformTargetCheck>
+    <EnableUnsupportedPlatformTargetCheck Condition="'$(EnableUnsupportedPlatformTargetCheck)' == ''">true</EnableUnsupportedPlatformTargetCheck>
   </PropertyGroup>
 
   <Target Name="_CheckForUnsupportedPlatformTarget"
-          Condition="'$(EnableMLUnsupportedPlatformTargetCheck)' == 'true'"
+          Condition="'$(EnableUnsupportedPlatformTargetCheck)' == 'true'"
           AfterTargets="_CheckForInvalidConfigurationAndPlatform">
 
     <!--
