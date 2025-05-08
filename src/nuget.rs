@@ -28,14 +28,17 @@ pub struct Metadata {
 impl Nuspec {
     fn new(project: &Project) -> Self {
         let author = project.spec.package.authors.first().unwrap();
-        let owner = project.spec.package.owners.first().unwrap();
+
+        let owners = project.spec.targets.nuget.as_ref()
+            .map(|nuget| nuget.owners.clone()).unwrap();
+
         Self {
             metadata: Metadata {
                 id: project.spec.package.name.clone(),
                 version: project.version.to_string(),
                 title: project.spec.package.name.clone(),
                 authors: author.clone(),
-                owners: owner.clone(),
+                owners: owners.clone(),
                 projectUrl: project.spec.package.repo.clone(),
                 license: project.spec.package.license.clone(),
                 require_license_acceptance: false,
@@ -67,6 +70,7 @@ impl Nuspec {
     <owners>{}</owners>
     <projectUrl>{}</projectUrl>
     <license type="expression">{}</license>
+    <licenseUrl>https://licenses.nuget.org/{}</licenseUrl>
     <requireLicenseAcceptance>{}</requireLicenseAcceptance>
     <description>{}</description>
   </metadata>
@@ -80,6 +84,7 @@ impl Nuspec {
             self.metadata.authors,
             self.metadata.owners,
             self.metadata.projectUrl,
+            self.metadata.license,
             self.metadata.license,
             self.metadata.require_license_acceptance,
             self.metadata.description,

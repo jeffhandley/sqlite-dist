@@ -5,7 +5,6 @@ use serde::Deserialize;
 pub struct SpecPackage {
     pub name: String,
     pub authors: Vec<String>,
-    pub owners: Vec<String>,
     pub license: String,
     pub description: String,
     pub homepage: String,
@@ -55,6 +54,7 @@ pub struct TargetAmalgamation {
 #[derive(Deserialize)]
 pub struct TargetNuget {
     pub friendly_name: String,
+    pub owners: String,
 }
 
 #[derive(Deserialize)]
