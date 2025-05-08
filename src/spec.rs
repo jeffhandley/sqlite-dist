@@ -5,6 +5,7 @@ use serde::Deserialize;
 pub struct SpecPackage {
     pub name: String,
     pub authors: Vec<String>,
+    pub owners: Vec<String>,
     pub license: String,
     pub description: String,
     pub homepage: String,

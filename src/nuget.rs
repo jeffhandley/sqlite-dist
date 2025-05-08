@@ -18,21 +18,26 @@ pub struct Metadata {
     pub title: String,
     pub authors: String,
     pub owners: String,
+    pub license: String,
     pub require_license_acceptance: bool,
     pub description: String,
+    pub projectUrl: String,
     pub files: Option<Vec<String>>,
 }
 
 impl Nuspec {
     fn new(project: &Project) -> Self {
         let author = project.spec.package.authors.first().unwrap();
+        let owner = project.spec.package.owners.first().unwrap();
         Self {
             metadata: Metadata {
                 id: project.spec.package.name.clone(),
                 version: project.version.to_string(),
                 title: project.spec.package.name.clone(),
                 authors: author.clone(),
-                owners: author.clone(),
+                owners: owner.clone(),
+                projectUrl: project.spec.package.repo.clone(),
+                license: project.spec.package.license.clone(),
                 require_license_acceptance: false,
                 description: project.spec.package.description.clone(),
                 files: None,
@@ -60,6 +65,8 @@ impl Nuspec {
     <title>{}</title>
     <authors>{}</authors>
     <owners>{}</owners>
+    <projectUrl>{}</projectUrl>
+    <license type="expression">{}</license>
     <requireLicenseAcceptance>{}</requireLicenseAcceptance>
     <description>{}</description>
   </metadata>
@@ -72,6 +79,8 @@ impl Nuspec {
             self.metadata.title,
             self.metadata.authors,
             self.metadata.owners,
+            self.metadata.projectUrl,
+            self.metadata.license,
             self.metadata.require_license_acceptance,
             self.metadata.description,
             files_xml
