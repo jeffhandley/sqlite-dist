@@ -240,8 +240,15 @@ impl NugetPackage {
 
 namespace Microsoft.Data.Sqlite
 {{
+    /// <summary>
+    /// Utility for loading SQLite vector extension.
+    /// </summary>
     public static class Sqlite{0}Extensions
     {{
+        /// <summary>
+        /// Loads the {1} SQLite vector extension.
+        /// </summary>
+        /// <param name="connection">A connection to a SQLite database.</param>
         public static void Load{0}(this SqliteConnection connection)
           => connection.LoadExtension("{1}");
     }}
